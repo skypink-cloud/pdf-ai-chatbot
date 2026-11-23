@@ -563,3 +563,64 @@ if question:
                 "답변 생성에 실패했습니다.\n\n"
                 + explain_error(e)
             )
+
+
+# ==========================================
+# 질문과 답변 Markdown 저장 기능
+# ==========================================
+
+st.divider()
+st.subheader("📥 질문과 답변 저장")
+
+# 현재 채팅 기록에서 Markdown 내용을 만듭니다.
+def create_markdown():
+    lines = ["# PDF AI 챗봇 질의응답 기록", ""]
+
+    # 분석한 PDF 파일명 기록
+    lines.append("## 분석 문서")
+    for item in st.session_state.pdf_files:
+        lines.append(f"- {item['name']}")
+
+    lines.append("")
+    lines.append("---")
+    lines.append("")
+
+    question_number = 0
+
+    # 질문과 답변을 순서대로 저장
+    for message in st.session_state.messages:
+
+        if message["role"] == "user":
+            question_number += 1
+
+            lines.append(f"## 질문 {question_number}")
+            lines.append("")
+            lines.append(message["content"])
+            lines.append("")
+
+        elif message["role"] == "assistant":
+            lines.append(f"### AI 답변 {question_number}")
+            lines.append("")
+            lines.append(message["content"])
+            lines.append("")
+            lines.append("---")
+            lines.append("")
+
+    return "\n".join(lines)
+
+
+# 채팅 기록이 있을 때만 다운로드 버튼을 표시합니다.
+if st.session_state.messages:
+
+    markdown_text = create_markdown()
+
+    st.download_button(
+        label="📄 질문과 답변 MD 파일로 저장",
+        data=markdown_text.encode("utf-8"),
+        file_name="PDF_질의응답_기록.md",
+        mime="text/markdown",
+        use_container_width=True
+    )
+
+else:
+    st.info("질문과 답변이 생성되면 MD 파일로 저장할 수 있습니다.")
